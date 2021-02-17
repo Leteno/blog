@@ -6,7 +6,7 @@
 
 ## 路漫漫其修远兮
 
-smart_ptr 位于 boostorg/boost/libs/smart_ptr (其实是 submodule，需要 clone --recursive 详见 [00-GetStart.md](00-GetStart.md)) 而文档可以去这个位置浏览 https://www.boost.org/doc/libs/release/libs/smart_ptr/，很抱歉， libs/smart_ptr/doc 理论上应该可以本地生成文档的，我尝试用 b2 build 会报错，有知道的同学希望能指点一下，谢谢。比较遗憾的是，文档只有英文版，不过这是学计算机的必经之路。
+smart_ptr 位于 boostorg/boost/libs/smart_ptr (其实是 submodule，需要 clone --recursive 详见 [00-GetStart.md](00-GetStart.md)) 而文档可以去这个位置浏览 https://www.boost.org/doc/libs/release/libs/smart_ptr/. (注：理论上应该可以在 libs/smart_ptr/doc 本地生成文档的，很抱歉，我尝试用 b2 build 会报错，有知道的同学希望能指点一下，谢谢)
 
 > 文档提及的东西会以这个形式
 
@@ -61,10 +61,10 @@ Buckle my shoe
 
 可以看到例子中并没有对 x 执行额外的操作，在离开其作用域时，`Shoe` 就被 `delete` 了，执行了析构函数 `~Shoe()`。
 
-而 MyClass 只是说明：
+而觉得这里的 MyClass 的作用：
 
 * 对于 scope_ptr 只需关注`~scope_ptr()`析构时机，放哪都一样。
-* delete 真的是在退出作用域时发生的，先输出 `1` ,`2`，后输出 `Buckle my shoe`
+* delete 确实是在退出作用域时发生的，先输出 `1` ,`2`，后输出 `Buckle my shoe`
 
 > scope_ptr 不支持 share ownership 以及 transfer ownership. 
 
@@ -86,11 +86,11 @@ scoped_ptr<Shoe> c;
 c = a;                  // 失败，赋值运算符是 private 的
 ```
 
-这样就可以确保实例只有一个，功能处处受限能使我们安心，不怕它被人乱来（再坏能坏到哪去）受限也是一种自由。
+这样就可以确保实例只有一个，功能受限且唯一，能使我们安心，不怕被后人乱来。受限也是一种自由。
 
 ## scoped_array
 
-> scoped_array 管理动态生成的数组`new[]`, 会在析构函数，或 reset 函数销毁数组。
+> scoped_array 管理动态生成的数组`new[]`, 会在析构函数，或 reset() 销毁数组。
 >
 > 与 shared_ptr<T[]> 相比，scoped_array 是 noncopyable 的
 
@@ -116,9 +116,9 @@ array<int, 6>
 array<int, 7>
 ```
 
-实际上会在编译期生成俩个不同的类（详见 C++ Primer 16.1 定义模板 -  非类型模板参数）
+实际上会在编译期实例化俩个不同的类（详见 C++ Primer 16.1.1 函数模板 -  非类型模板参数）
 
-不过这也说明 std::vector 会动态定义空间，估计 enlarge 的时候也掺和一脚。没看过源码，mark 一下。
+由上面的描述也说明 std::vector 会动态定义空间，估计 enlarge 的时候也掺和一脚。没看过源码，mark 一下。
 
 介绍里面提及重载了 `[]` 符号，所以可以直接 `scoped_array[index]` 取值了.
 
