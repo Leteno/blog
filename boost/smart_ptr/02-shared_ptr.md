@@ -164,7 +164,22 @@ swap 函数没啥好说的，而 reset 函数却是用一个局部值`this_type(
 
 用一个不恰当的比喻：如何清理垃圾？绑在生命周期更短的目标上。
 
- 
+## Best Practice
+
+> 任何 new 分配的指针，都应该让 shared_ptr 管理
+
+```c++
+改：
+int *pInt = new int(123);
+int *pAnotherInt = pInt;
+// 此处出 exception 就跪了，delete 将不被执行
+delete pInt;
+为：
+shared_ptr<int> pInt(new int(123));
+shared_ptr<int> pAnotherInt = pInt;
+```
+
+让 shared_ptr 管理动态分配资源的释放，又由于它会随着最后一个 shared_ptr 析构（由于局部变量离开作用域）自动释放资源，不担心中间由于 exception 而内存泄漏之类的问题，十分安全可靠。
 
 ## 结语
 
