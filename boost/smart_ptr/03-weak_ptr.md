@@ -1,10 +1,12 @@
 # weak_ptr
 
-> 弱引用到已经被 shared_ptr 管理的对象，可以通过 shared_ptr(weak_ptr) 或是 weak_ptr::lock 的方式获取 shared_ptr。
+> 已经被 shared_ptr 管理的对象的弱引用，可以通过 shared_ptr(weak_ptr) 或是 weak_ptr::lock 的方式获取 shared_ptr。
 >
-> 如果 shared_ptr 管理的对象已经被销毁，使用 shared_ptr(weak_ptr) 会报错：boost::bad_weak_ptr
+> 如果原先 shared_ptr 管理的对象已经被销毁:
 >
-> 此时使用 weak_ptr.lock 会返回一个空的  shared_ptr
+> - shared_ptr(weak_ptr) 会报错：boost::bad_weak_ptr
+>
+> - weak_ptr.lock 会返回一个空的  shared_ptr
 
 ```c++
 // example
@@ -20,7 +22,7 @@ if(shared_ptr<int> r = q.lock())
 
 注： shared_ptr operator bool() 值为：`px != 0`; 定义在 operator_bool.hpp，被 shared_ptr.hpp 引用。
 
-与 shared_ptr 不同，weak_ptr 没有 `get` 方法，因为 weak_ptr 不能决定指针的生命周期，get 获取到的指针什么时候销毁，不清楚，拿着一个生命周期不清楚的指针，任何操作都是提心吊胆，生死未卜。
+与 shared_ptr 不同，weak_ptr 没有 `get` 方法，因为 weak_ptr 不能决定指针的生命周期，不能掌握 `get` 返回的指针销毁时刻，对这样的指针，任何操作都是提心吊胆，生死未卜。
 
 weak_ptr 的结构是:
 
@@ -42,9 +44,9 @@ class weak_count {
 };
 ```
 
-pi_, 跟指针 px 一样，也是抄 shared_ptr 里面的（shared_count）。
+pi_, 跟指针 px 一样，也是抄 shared_ptr 里面（shared_count）的。
 
-构造和析构时调用的方法是 `pi_->weak_add_ref()`, `pi_->weak_release() `(还记得 shared_count 调用的是什么吗？)
+构造和析构时会调用的方法是 `pi_->weak_add_ref()`, `pi_->weak_release() `(还记得 shared_count 调用的是什么吗？)
 
 weak ref count 到了终点会发生什么呢？竟然是 `sp_counted_base::destroy` 方法。而方法这么牛逼：
 
@@ -69,12 +71,11 @@ void weak_release() {
 }
 ```
 
-而 pi_ 的生死大权一直掌握在 shared_ptr 手中：
+weak_ptr 的构造和销毁 weak_add_ref, weak_release 也是会成对出现，也就是单靠 weak_ptr destroy 是没法将 weak_count_ 减为 0 的。distroy 的决定权一直掌握在 shared_ptr 手中：
 
 ```c++
 void release() // nothrow
 {
-    std::cout << "calling release on this: " << this << " weak_count " << weak_count_  << std::endl;
     if( atomic_decrement( &use_count_ ) == 1 )
     {
         dispose();
@@ -83,13 +84,13 @@ void release() // nothrow
 }
 ```
 
-临近 dispose() 才给 weak_release 最后一击，最终执行 destroy()。 卧槽，过瘾。
+临近 dispose() 才给 weak_release 最后一击，最终执行 destroy()，使得 `destroy()` 严格晚于 `dispose()`。 卧槽，过瘾。
 
-那初始值给 1 只有一种可能性，那就是 shared_ptr 第一次初始化，并没有对 use_count_ ++, 也就是方法：`add_ref_copy`,
+那初始值给 1 只有一种可能性，那就是 shared_ptr 第一次初始化，并没有对 use_count_ ++, 也就是没有执行方法：`add_ref_copy`,
 
-很棒，`add_ref_copy` 调用位置只有俩个：
+果然，`add_ref_copy` 调用位置只有俩个：
 
 * shared_count 的拷贝构造函数
 * shared_count 的拷贝赋值运算符
 
-默认构造函数不搞事情 ！
+默认构造函数不执行 `add_ref_copy`, 不过也挺符合名字的！
