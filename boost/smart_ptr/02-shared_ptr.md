@@ -47,7 +47,7 @@ class sp_counted_base {
 };
 ```
 
-比较有意思的是上述的判断是 == 1, 也就是说 初始值为 1，第一次引用，值为 2。
+比较有意思的是上述的判断是 == 1, 也就是说 初始值为 1，第一次引用，值为 2。（实际上不是，在 [03-weak_ptr.md](03-weak_ptr.md) 中更正，挺有意思的过程）
 
 另外一点是， shared_count 存放的是 sp_counted_base 指针，所以每次 shared_ptr 拷贝 析构 可以更新同一块内存空间(ref-count) 自然就知道什么时候我们可以安全地 delete 目标指针了：
 
@@ -180,6 +180,26 @@ shared_ptr<int> pAnotherInt = pInt;
 ```
 
 让 shared_ptr 管理动态分配资源的释放，又由于它会随着最后一个 shared_ptr 析构（由于局部变量离开作用域）自动释放资源，不担心中间由于 exception 而内存泄漏之类的问题，十分安全可靠。
+
+shared_ptr 提供了 operator* operator-> 方法，我们可以间接操作指针，同样可以获取里面的值，执行成员函数。
+
+C++ Primier 那本书也强调不要智能指针 裸指针混用(见 12.1.3 shared_ptr 和 new 结合使用)，这就像走钢丝，让人心惊胆颤。举的例子是：
+
+```c++
+int* x(new int(1024));
+process(shared_ptr<int>(x)); // 右值，函数结束后会释放内存
+int j = *x;                  // 内存已经释放
+
+// 还有这处：
+shared_ptr<int> p(new int(42));
+int *q = p.get();
+{
+    shared_ptr<int>(q);
+} // 程序块结束 q 被销毁
+int foo = *p;  // p 已经被销毁了
+```
+
+
 
 ## 结语
 
