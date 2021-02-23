@@ -73,13 +73,13 @@ private:
 }
 ```
 
-而 shared_ptr 和 weak_ptr 都可以创建其拷贝，所以自然由 ref-count，ref-count 到 0 才能被回收。
+而 shared_ptr 和 weak_ptr 都可以创建其拷贝，所以有 ref-count，ref-count 到 0 才能被回收。
 
 他们共享着 ref-count 指针，在拷贝/析构实例时，更新 ref-count 值，详细在下文
 
 ## shared_ptr  and weak_ptr
 
-weak_ptr 可以脱离 shared_ptr 存在，但是没意义，因为 weak_ptr "管理"的指针时通过 shared_ptr 传入的。
+weak_ptr 可以脱离 shared_ptr 存在，但是没意义，因为 weak_ptr "管理"的指针是通过 shared_ptr 传入的。
 
 讲 shared_ptr 和 weak_ptr 的区别，观察其数据结构即可：
 
@@ -105,7 +105,7 @@ sp_counted_base:
 
 ```c++
 weak_ptr( shared_ptr<Y> const & r ) : px( r.px ), pn( r.pn ) { ... }
-weak_count(shared_count const & r) BOOST_SP_NOEXCEPT: pi_(r.pi_) { ... }
+weak_count(shared_count const & r) : pi_(r.pi_) { ... }
 ```
 
 可以看到 weak_ptr 的一切，都是 shared_ptr 给的。
@@ -117,17 +117,13 @@ shared_ptr 的所有副本以及 weak_ptr 都共用着 sp_counted_base 指针，
 * use_count_ => 0, delete px;
 * weak_count_ => 0, delete pi_;
 
-use_count_ 到 0, delete px 很容易理解，所有的副本都被析构了，use_count_ 到 0，自然 `delete px`; 下面要说的是 `weak_count_`
+use_count_ 到 0, delete px，很容易理解，所有的副本都被析构了，use_count_ 到 0，自然 `delete px`;
 
-我们看一下 sp_counted_base 的实现
+下面要说的是 `weak_count_`，我们看一下 sp_counted_base 的实现
 
 ```c++
 // class sp_counted_base
 sp_counted_base(): use_count_( 1 ), weak_count_( 1 ) {}
-virtual void destroy() // nothrow
-{
-	delete this;
-}
 void release() // call by ~shared_count()
 {
     if( atomic_decrement( &use_count_ ) == 1 )  // 相当于 use_count-- == 1, 也就是结束后 use_count_ = 0
@@ -143,6 +139,11 @@ void weak_release() // call by ~weak_count()
         destroy();
     }
 }
+virtual void destroy()
+{
+	delete this;
+}
+virtual void dispose() = 0; // 一般实现为 delete px
 ```
 
 可以看到 `use_count_` `weak_count_` 的初始值都是 1，但意义不同：
@@ -154,7 +155,7 @@ void weak_release() // call by ~weak_count()
 
 * weak_ptr 已经被析构了，shared_ptr 还存活
 
-use_count_ = shared_ptr_count,  weak_count_ = 1, 在 `use_count_` == 0 时，`px` `pi_` 指针终于被回收
+use_count_ = shared_ptr_count,  weak_count_ = 1, 在 `use_count_` == 0 时，weak_count_-- 到 0，`px` `pi_` 指针终于被回收
 
 * shared_ptr 已经被析构了，weak_ptr 还有生还者
 
@@ -162,11 +163,11 @@ use_count_ == 0, weak_count_ = weak_ptr_count, px 指针已经被回收了，pi_
 
 ## 总结
 
-智能指针严谨地利用了对象的构造，拷贝，析构等时机，控制资源的销毁，巧妙且安全。
+* 智能指针严谨地利用了对象的构造，拷贝，析构等时机，控制资源的销毁，巧妙且安全。
 
-Copyable 也好 NonCopyable 也罢，只需细心在每一处时机更新资源的状态即可。
+* Copyable 也好 NonCopyable 也罢，只需细心在每一处时机，合适地更新资源的状态即可。
 
-没想到 sp_counted_base 能够严格控制自己，在该销毁时，自己主动销毁，不制造任何脏东西，可靠且干净。
+* 没想到 sp_counted_base 能够严格控制自己，在该销毁时，自己主动销毁，不制造任何脏东西，可靠且干净。
 
-内推是真的。。。最好简历上附上个人博客 github 地址之类的，这样会高效一点（
+* 内推是真的。。。最好简历上附上个人博客 github 地址之类的，这样会高效一点（
 
