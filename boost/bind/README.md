@@ -31,3 +31,49 @@ bind(g, _1, 2, _2) 等价于 f(x, y) { return g(x, 2, y); }
 bind(ref(g), 1, 2, 3)()
 ```
 
+bind 也可以用于成员函数：
+
+```c++
+struct X
+{
+    bool f(int a);
+};
+
+X x;
+shared_ptr<X> p(new X);
+int i = 5;
+
+bind(&X::f, ref(x), _1)(i);		// x.f(i)
+bind(&X::f, &x, _1)(i);			// (&x)->f(i)
+bind(&X::f, x, _1)(i);			// (internal copy of x).f(i)
+bind(&X::f, p, _1)(i);			// (internal copy of p)->f(i)
+```
+
+bind 也可以互相嵌套，不过 placeholder 却是这样：
+
+```
+bind(g, bind(f, _3, _1), _2)("x", "y", "z") => g(f("z", "x"), "y")
+```
+
+bind 感觉用起来像是 lambda (可能是本末倒置):
+
+```c++
+std::remove_if(first, last, !bind(&X::visible, _1)); // 等价于 for each x: if(!x.visible()) remove;
+std::find_if(first, last, bind(&X::name, _1) == "Peter" || bind(&X::name, _1) == "Paul");
+```
+
+Do and Don't 里面提及到：
+
+```c++
+int f(int);
+
+int main()
+{
+    boost::bind(f, "incompatible");      // OK so far, no call
+    boost::bind(f, "incompatible")();    // error, "incompatible" is not an int
+    boost::bind(f, _1);                  // OK
+    boost::bind(f, _1)("incompatible");  // error, "incompatible" is not an int
+}
+```
+
+有点意思，记录一下 以后印证。
