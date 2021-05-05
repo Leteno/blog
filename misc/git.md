@@ -48,3 +48,94 @@ export PATH=~/bin/:$PATH
 
 ### 天地茫茫何所往
 
+文档是很好的工具，不过我浏览了一下 README 并没有只是知道了大概，像上述方法描述，debug 一下 code：
+
+发现有一处 setup_path:
+
+```c
+// void setup_path(void) 
+const char *exec_path = git_exec_path();  // home/juzhen/libexec/git-core    git --exec-path 可得
+const char *old_path = getenv("PATH");
+git_set_exec_path(exec_path);
+add_path(&new_path, exec_path);
+if (old_path)                                                                                                         strbuf_addstr(&new_path, old_path);
+setenv("PATH", new_path.buf, 1);
+```
+
+其中 git-core 内含各种 git 命令：
+
+```shell
+juzhen@MININT-PTJ3NTI:/mnt/c/Users/juzhen/Workspace/code/git/git$ ls ~/libexec/git-core/
+git                   git-commit-tree               git-fsck-objects        git-merge-one-file           git-reflog             git-sparse-checkout   
+git-add               git-config                    git-gc                  git-merge-ours               git-remote             git-stage
+git-add--interactive  git-count-objects             git-get-tar-commit-id   git-merge-recursive          git-remote-ext         git-stash
+git-am                git-credential                git-grep                git-merge-resolve            git-remote-fd          git-status
+git-annotate          git-credential-cache          git-gui                 git-merge-subtree            git-remote-ftp         git-stripspace        
+git-apply             git-credential-cache--daemon  git-gui--askpass        git-merge-tree               git-remote-ftps        git-submodule
+git-archimport        git-credential-store          git-hash-object         git-mergetool                git-remote-http        git-submodule--helper 
+git-archive           git-cvsexportcommit           git-help                git-mergetool--lib           git-remote-https       git-svn
+git-bisect            git-cvsimport                 git-http-backend        git-mktag                    git-repack             git-switch
+```
+
+盲猜 git log 最后选中 git-log, 那么 比如 git log -n 1 是怎么选中 git-log ? 中间的规则是怎么一回事呢？
+
+```c
+// git.c
+int run_argv()
+  handle_builtin(argv)  // if could be handled by builtin, will exit.
+  ...
+  /* try external one*/
+  execv_dashed_external(argv)
+
+commands = {
+  {"add", cmd_add, RUN_SETUP | NEED_WORK_TREE},
+  ...
+  {"log", cmd_log, RUN_SETUP},
+  ...
+};
+handle_builtin(char* name):  // name: such as "log"
+  auto command = find_if(begin(commands), end(commands), [](command c) { return str-equal(name, c->name) }
+  if (command != end(commands)) {
+      // found
+      exit(run_command(command));
+  }
+cmd_log():
+  ...
+  // log.c
+  log_tree_commit(rev, commit)
+```
+
+可以看到 一开始会交给内置命令处理，不行再用外置的，内置命令的 map 在 git.c `commands` 之中。执行内置命令结束后，会直接退出。
+
+我们在深入了解 handle_builtin 之前，我们先看一下 external 部分怎么做的（ms 这边有  git ms xxx 命令，用于日常开发，我们都想知道这块怎么做的，估计逻辑就在 external 部分）
+
+```c
+execv_dashed_external(argv):
+  cmd = "git-" + argv[0] + rest_of_args(argv+1) // such as git-ms format
+  run_command(cmd)
+
+run_command(cmd):
+  // 会 fork 一个进程出来运行 cmd
+  // 执行函数是：execve，也就是会从 PATH 中找寻
+```
+
+所以我们 `git xx` 等外置命令，其实就是需在 PATH 中有 `git-xx` 这么一个命令即可, git 会帮我们 handle 整个匹配过程。
+
+试验一下：
+
+```shell
+// git-hello
+#!/bin/bash
+echo "Hello juzhen"
+```
+
+```shell
+// output:
+juzhen@juzhen-ubuntu18:~/Workspace/code/git/git$ git-hello
+Hello juzhen
+juzhen@juzhen-ubuntu18:~/Workspace/code/git/git$ git hello
+Hello juzhen
+```
+
+
+
