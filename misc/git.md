@@ -94,7 +94,7 @@ commands = {
   ...
 };
 handle_builtin(char* name):  // name: such as "log"
-  auto command = find_if(begin(commands), end(commands), [](command c) { return str-equal(name, c->name) }
+  auto command = find_if(begin(commands), end(commands), [](command c) { return str-equal(name, c->name) });
   if (command != end(commands)) {
       // found
       exit(run_command(command));
@@ -137,5 +137,74 @@ juzhen@juzhen-ubuntu18:~/Workspace/code/git/git$ git hello
 Hello juzhen
 ```
 
+回过头来看 handle_builtin 的逻辑。
 
+如上文，我们有一个映射表，如：`add` 对应 `cmd_add`, `log` 对应 `cmd_log`
 
+以 cmd_add 为例，它的实现位于 buildin/add.c 中，而这个跟我们之前顾忌的 `git-add` 有什么关系呢？
+
+看了一下 Makefile:
+
+```makefile
+BUILTIN_OBJS += builtin/add.o
+BUILTIN_OBJS += builtin/am.o
+...
+BUILTIN_OBJS += builtin/log.o
+...
+# List built-in command $C whose implementation cmd_$C() is not in
+# builtin/$C.o but is linked in as part of some other command.
+BUILT_INS += $(patsubst builtin/%.o,git-%$X,$(BUILTIN_OBJS))
+
+$(BUILT_INS): git$X
+	$(QUIET_BUILT_IN)$(RM) $@ && \
+	ln $< $@ 2>/dev/null || \
+	ln -s $< $@ 2>/dev/null || \
+	cp $< $@
+```
+
+其中各个符号的含义：
+
+```
+all: library.cpp main.cpp
+---  -----------
+$@       $<
+     --------------------
+              $^
+```
+
+本地跑一下 `make -n` 命令，  也可以输出一下 build 一个 `git-log` 需要做什么：
+
+```
+juzhen@MININT-PTJ3NTI:/mnt/c/Users/juzhen/Workspace/code/git/git$ make -n git-log
+...
+ln git git-log 2>/dev/null || \
+ln -s git git-log 2>/dev/null || \
+cp git git-log
+```
+
+ 好奇查了一下  md5:
+
+```
+juzhen@MININT-PTJ3NTI:/mnt/c/Users/juzhen/Workspace/code/git/git$ md5sum git
+6ec8c6cd0298d626bb8c2a956fa58d69  git
+juzhen@MININT-PTJ3NTI:/mnt/c/Users/juzhen/Workspace/code/git/git$ md5sum git-add
+6ec8c6cd0298d626bb8c2a956fa58d69  git-add
+juzhen@MININT-PTJ3NTI:/mnt/c/Users/juzhen/Workspace/code/git/git$ md5sum git-log
+6ec8c6cd0298d626bb8c2a956fa58d69  git-log
+```
+
+上文提到的猜测：`git log` 会使用 `git-log`，其实应该是否命题。
+
+* 没必要，由于 `git = git-log`, 再转一次，其实相当于再套娃一层，显得多此一举
+
+不过还是以 code 服人，关键就在于 `cmd_log` 的实现具体是怎么一回事：
+
+我其实在之前的试验中尝试 debug，无奈 gdb 过程中遇到这样的错误：
+
+```
+Program received signal SIGTTOU, Stopped (tty output).
+```
+
+而我尝试使用网上的做法关闭 tty 的配置： `stty -tostop` 无果。
+
+而在看 cmd_log 的实现在 log-tree.c 中，我有预感，我们文章开头谈及的 tree blob 会在下面揭开面纱。
