@@ -208,3 +208,27 @@ Program received signal SIGTTOU, Stopped (tty output).
 而我尝试使用网上的做法关闭 tty 的配置： `stty -tostop` 无果。
 
 而在看 cmd_log 的实现在 log-tree.c 中，我有预感，我们文章开头谈及的 tree blob 会在下面揭开面纱。
+
+### 曙光？
+
+查阅了资料，signal 可以让程序处理，也可以让 terminal 自行处理。而当我这么做就好了：
+
+```shell
+(gdb) handle SIGTTOU nostop
+Signal        Stop      Print   Pass to program Description
+SIGTTOU       No        Yes     Yes             Stopped (tty output)
+(gdb) handle SIGTTOU ignore
+Signal        Stop      Print   Pass to program Description
+SIGTTOU       No        Yes     No              Stopped (tty output)
+```
+
+这样 遇到 SIGTTOU，我们 (gdb) 也不处理，也不 stop. 可以继续 debug。
+
+退出 gdb 之后，还会被卡住，是由于我们都不管 SIGTTOU，丢给 terminal 管，此时只要在这之前设置好 nostop（-tostop） 就好：
+
+```shell
+> stty -tostop
+```
+
+
+
