@@ -209,7 +209,7 @@ Program received signal SIGTTOU, Stopped (tty output).
 
 而在看 cmd_log 的实现在 log-tree.c 中，我有预感，我们文章开头谈及的 tree blob 会在下面揭开面纱。
 
-### 曙光？
+### 曙光？ git cat-file ?
 
 查阅了资料，signal 可以让程序处理，也可以让 terminal 自行处理。而当我这么做就好了：
 
@@ -230,5 +230,51 @@ SIGTTOU       No        Yes     No              Stopped (tty output)
 > stty -tostop
 ```
 
+强行看 log.c，对基础的类型了解过少，看起来非常吃力。既然之前印度老哥跟我们讲过 `git cat-file -p` 可以作用在 `commit` `tree` `blob` 估计看 cat-file.c 有助于理解基础类型以及之间的关系。还是简单介绍当时他给我们讲的东西：
 
+```shell
+> git log -n 1
+commit f229e07650cb933477f5529bdca96e0f408c5d16 (HEAD -> master)
+Author: zhengjunhao <changchunjunhao@gmail.com>
+Date:   Thu May 13 22:43:35 2021 +0800
+
+    Fix SIGTTOU issue which block debugging
+
+> git cat-file -p f229e07650cb933477f5529bdca96e0f408c5d16
+tree 282662d479e761fb9f72c1c5e80bab06e4884efa
+parent 42f7f0f2f8684179f20a2c0155cda7744ae5ea9f
+author zhengjunhao <changchunjunhao@gmail.com> 1620917015 +0800
+committer zhengjunhao <changchunjunhao@gmail.com> 1620917949 +0800
+
+> git cat-file -p 282662d479e761fb9f72c1c5e80bab06e4884efa
+100644 blob 41a3361e883d6212fe6e5ea0dc44a198200ca374    README.md
+040000 tree 339850800542c657a5bc3a16c1d74402fbc4629d    c++
+040000 tree 5c5830d56389b4e2c32deda9efd53f1a9569543c    misc
+040000 tree 545e76c9416180e776730f8fdee37b022364c49f    python
+040000 tree 7ba756cd557fd322acfa2c134b1394d89ad368c2    test
+
+> git cat-file -p 41a3361e883d6212fe6e5ea0dc44a198200ca374
+# blog
+
+ The place to share.
+
+### current blog list:
+
+[math test01](test/test01.md)
+
+```
+
+ 很奇妙地串起了 commit tree blob
+
+```c
+// cat-file.c : cat_one_file  optional '-p'
+type = oid_object_info(the_repository, &oid, NULL);
+if type < 0: // type bad
+  die
+if type == OBJ_TREE:
+  return cmd_ls_tree(repo, oid)
+if type == OBJ_BLOB:
+  return stream_blob(oid)
+return read_object_file(oid)
+```
 
