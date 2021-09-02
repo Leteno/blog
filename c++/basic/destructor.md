@@ -75,6 +75,7 @@ Eletricity e;
 
 你会发现这个是新建资源后，委托给别人，然后就可以解放了？？？
 我们对比一下：
+
 ```
 {
   IResource* r = acquire();
@@ -83,4 +84,11 @@ Eletricity e;
 }
 ```
 
-哪一天有人在 do something, 中间判断一个条件就直接 return 了，导致你末尾的回收资源的代码不被执行，也不用担心突然 do something 出了 exception，末尾回收资源的代码不被执行。（所以有人说这样安全
+跟这个相比，有什么区别呢？只是能 "减少" 工程师的注意力吗？
+
+还有一点，安全。
+
+万一 do something 内出现了 exception，代码则会跳转到 catch 语句中，后面的 free 语句没有执行到，最后这个资源就没法回收了。。。（从这可以看出 try-catch 不好的地方，有些原教主义的人不喜欢 try-catch，他们喜欢 bool doSomething(), 或者  bool doSomething(error&).
+
+好的 这就是 析构函数在 C++ 使用时候比较常见的俩个点了。它凭借制度优势（跳出作用域则被执行），被工程师青睐，干一些回收的活，而且还很安全。
+
