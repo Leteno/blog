@@ -14,15 +14,19 @@
 
 [chrome/browser/ui/webui/inspect_ui.cc](https://source.chromium.org/chromium/chromium/src/+/main:chrome/browser/ui/webui/inspect_ui.cc)
 
-> Chromium 的内部的 page 经常是一个 host name 对应一个 XXXUI，而这 XXXUI 最终都是通过 XXX.html 绘制页面。
+> Chromium 的 native page 经常是一个 hostName 对应一个 XxxUI，如下图：
 >
 > ![image-20211005122645120](res/InspectHost2InspectUI.png)
 >
-> 比如本例中的 [inspect.html - Chromium Code Search](https://source.chromium.org/chromium/chromium/src/+/main:chrome/browser/resources/inspect/inspect.html?q=inspect.html&ss=chromium%2Fchromium%2Fsrc)
+> 而这 XxxUI 最终都是通过 xxx.html 绘制页面，比如本例中的 [inspect.html - Chromium Code Search](https://source.chromium.org/chromium/chromium/src/+/main:chrome/browser/resources/inspect/inspect.html?q=inspect.html&ss=chromium%2Fchromium%2Fsrc)
 
 既然这个页面是 inspect.html 绘制的, 自然是可以知道负责显示 device 信息的代码：[inspect.js - Chromium Code Search](https://source.chromium.org/chromium/chromium/src/+/main:chrome/browser/resources/inspect/inspect.js). 这里吹一波 Chromium Code Search, 真的太好用了 ！
 
-拿 Edge Canary 来试一下，在 chrome://inspect 中 F12，在 inspect.js 的一些地方打断点，信息量还挺多的：
+拿 Edge Canary 来试 inspect 一下，
+
+![image-20211005132407517](res/inspect_edge_cannary.png)
+
+在 chrome://inspect 中 F12，在 inspect.js 的一些地方打断点，信息量还挺多的：
 
 ![image-20211005123432685](res/js-populateRemoteTargets.png)
 
@@ -56,11 +60,11 @@
 
 ![image-20211005125037811](res/QueryDeviceInfo.png)
 
-获取 deviceInfo 需要跑 adb 命令
+获取 deviceInfo 的时候，需要跑 adb 命令
 
 ![image-20211005125203130](res/adb_device_provider_query.png)
 
-而命令就是这个：
+而辣个命令就是这个：
 
 ![image-20211005125303327](res/device_info_adb_command.png)
 
@@ -68,7 +72,7 @@
 
 ![image-20211005125354702](res/android_device_info_query.png)
 
-经查勘，原来他们会跑一个 adb 命令 `adb shell cat /proc/net/unix`，从结果中，找一个 PATH 为 `@(.*_devtools_remote(_(.*))*)` 这些行 截取其内容作为 socket _name 及其 Pid 
+经查勘，原来他们会跑一个 adb 命令 `adb shell cat /proc/net/unix`，从结果中，找一些 PATH 为 `@(.*_devtools_remote(_(.*))*)` 的行，截取其内容作为 socket _name 及其 Pid 
 
 socket_name = regex.group(1);
 
@@ -78,9 +82,9 @@ pid = regex.group(3);
 
 ![image-20211005125712224](res/chrome_devtools_remote.png)
 
-当然还有补充条件，不过由于当前的 pid 为空，所以只有这一个。
+当然还有补充条件，不过由于当前的 pid 为空，所以补充条件可以忽略。
 
-也就是说，如果我的 app 的 webview 也能开一个  ***devtools_remote, chrome://inspect 就能发现并 debug webview.
+也就是说，如果我的 app 的 webview 也能开一个  `***devtools_remote`, chrome://inspect 就能发现并 debug webview.
 
 我们先继续看看 chrome://inspect 是怎么获取 pages 信息的。
 
