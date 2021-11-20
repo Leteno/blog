@@ -1,0 +1,21 @@
+[ My custom filter =v= ]
+
+! Use in Adblock Plus custom filter
+
+! Filter the ads that I don't like
+
+! Code about rule parsing is: https://source.chromium.org/chromium/chromium/src/+/main:components/subresource_filter/tools/rule_parser/rule_parser.cc
+
+
+
+! css pattern:  ##{css_selector}, or #@{css_selector} for allow list.
+
+! id="xyz":    ###xyz
+
+! class="xyz":  ##.xyz
+
+! for specific domain:
+
+! foo.com##{css_selector} or foo.com,bar.com##{css_selector}
+
+###recommendedSites
