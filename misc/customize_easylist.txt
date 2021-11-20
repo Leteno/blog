@@ -1,12 +1,10 @@
-[ My custom filter =v= ]
+[ My custom filter ]
 
 ! Use in Adblock Plus custom filter
 
 ! Filter the ads that I don't like
 
 ! Code about rule parsing is: https://source.chromium.org/chromium/chromium/src/+/main:components/subresource_filter/tools/rule_parser/rule_parser.cc
-
-
 
 ! css pattern:  ##{css_selector}, or #@{css_selector} for allow list.
 
