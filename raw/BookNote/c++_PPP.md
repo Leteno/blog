@@ -61,3 +61,44 @@ void GoToSchool() {
 
 
 
+> Compile  --  Link -- Run
+
+编译 ==object 文件==> 链接 ==executable==> 运行。
+
+编译阶段能发现 语法错误，类型错误（高精度转低精度）。
+
+链接阶段能发现不同 object 文件 combine 时的冲突，譬如重名，未定义(undefine)等
+
+运行时期的错误 有库兼容相关的错误，如库未能找到。
+
+
+
+> // DON'T DO IT
+>
+> while (the program doesn't appear to work) {   // pseudo code
+>      Randomly look through the program for something that "looks odd"
+>      Change it to look better
+> }
+
+
+
+> TRY THIS:
+>
+> *How would I know if the program actually worked correctly?*
+
+用简单的话来说，就是
+
+* 弄清楚程序包含哪些步骤 1 2 3，在这些步骤中间设置检查点 比如 1->2 之间， 2->3 之间
+* 这样能让你迅速判断错误是在 1, 2 还是 3
+* 然后 比如说 1 可能有问题，再把 1 切分成 1.1  1.2  1.3 , 重复上述步骤，能够逐步定位错误的位置，这样应该就能找到 bug 了
+
+切记不要到处找，乱找，容易分心，烦躁
+
+
+
+这其实也是在告诉我，如何写 debug friendly 的 code。
+
+如果一段 code, 东贴贴，西补补，呈浆糊状，那想去划分步骤肯定头疼。
+
+如果一段 code，有层次，一步一步，步骤清晰明朗，就像加工流水线，这样的 code 想 debug，难度变低不少呢。
+
