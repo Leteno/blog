@@ -118,7 +118,7 @@ PostTask* 这个方法可以确保 `task` 运行在 `from_here`, 也就是 `Heav
 
 这样就确保了 `OnHeavyJobFinish` 调用时的 thread 跟 `PostTask*` 的一致，满足了 WeakPtr 的要求。
 
-附上 reply sequence 的保存以及使用：
+附上 reply sequence 的保存以及使用：[post_task_and_reply_impl.cc - Chromium Code Search](https://source.chromium.org/chromium/chromium/src/+/main:base/threading/post_task_and_reply_impl.cc;l=138;drc=f934f529fdf764990c152ee4880365e33a48e1fd)
 
 ```c++
 // 保存
