@@ -8,9 +8,9 @@
 
 那有人会说了，废话，当然没问题了，这哪门子的多线程啊，都单线程了。
 
-还是多线程啊，对于不同作业，依旧是多线程，只是对于同类作业单线程了。Chromium 有个思想，叫做高并发，但不一定并行。 [highly concurrent, but not necessarily parallel](https://stackoverflow.com/questions/1050222/what-is-the-difference-between-concurrency-and-parallelism#:~:text=Concurrency is when two or,e.g.%2C on a multicore processor.)， 也就是尽可能做到不 block 线程，但是不要求必须并行运行线程。想想那些有指令在身的 thread 们，要是都用 lock 的话，那不得一堆 thread 扎堆排队等。与其这样，还不如扔给单个线程，自己还落得个自在，所在线程得到解放（俗称甩锅
+还是多线程啊，对于不同作业，依旧是多线程，只是对于同类作业单线程了。Chromium 有个思想，叫做高并发，但不一定并行。 [highly concurrent, but not necessarily parallel](https://stackoverflow.com/questions/1050222/what-is-the-difference-between-concurrency-and-parallelism#:~:text=Concurrency is when two or,e.g.%2C on a multicore processor.)， 也就是尽可能做到不 block 线程，但是不要求必须并行运行线程。想想那些有指令在身的 thread 们，要是都用 lock 的话，那不得一堆 thread 扎堆排队等，这样还浪费宝贵的线程让它们干等。与其这样，还不如扔给单个线程，自己还落得个自在，所在线程得到解放（俗称甩锅
 
-（“扔给单线程”：对于你不需要知道结果的，直接调 PostTask, 对于需要知道结果的，调 PostTaskAndReply, 而且他已经帮你做好了**“将reply task放在合适的线程上运行”**的工作，你只需要传 Func 即可）
+（“如何扔给单线程”：对于你不需要知道结果的，直接调 PostTask, 对于需要知道结果的，调 PostTaskAndReply, 而且他已经帮你做好了**“将reply task放在合适的线程上运行”**的工作，你只需要传 Func 即可）
 
 得勒，我无话可说。那什么时候回到 sequence_checker 了呢？
 
@@ -26,7 +26,7 @@
 
 问题来了，如果我遇到 sequence_checker 的问题，我也能找到他所在的 sequence，我怎么把 callback 扔到那个 sequence 上呢？
 
-关注下集，人间自然真情在，爱因为在心中
+关注下集，人间自有真情在，爱因为在心中
 
 
 
