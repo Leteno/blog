@@ -12,7 +12,9 @@
 
 > 我或许可以知道我现在写的 code 能不能影响到一俩周前的代码，但是我怎么知道会不会影响我一俩年前写的代码？
 
-当你在提交代码的时候，一旦不是新增的功能，而是修改的时候，你有可能需要仔细想一下会不会对"周边" code 造成影响。如果模块够小，你或许可以调试一下，很容易确保不受影响，当模块的体量很大的时候，如果有人告诉你，以前的 code 前人已经写了不少 test 确保它的功能正常，你可以跑一下。如果跑挂了，你不就可以看一下 test 的上下文，了解是不是你有些 corner case 没有考虑到。
+当你在提交代码的时候，一旦不是新增的功能，而是修改的时候，你有可能需要仔细想一下会不会对"周边" code 造成影响。如果模块够小，你或许可以调试一下，很容易确保不受影响，当模块的体量很大的时候，你要费的心思就不少了。
+
+如果有人告诉你，以前的 code 前人已经写了不少 test 确保它的功能正常，你可以跑一下。如果跑挂了，你不就可以看一下 test 的上下文，了解是不是你有些 corner case 没有考虑到。
 
 （而一般 test 的代码会以精炼为主，目的性很强，你能很方便地了解这个 corner case 的上下文）
 
@@ -48,11 +50,13 @@ MS 这边对 test 很看重，一旦 test 挂了，sheriff 会从记录中找到
 
 > 意识先于行动，但是有时候难以实施，导致行动放弃
 
-作者在 java 层或是 c++ 层都写过 test。在 chromium 写 test，比较难的地方是，对于 api 的不熟（毕竟 api 太多了），怎么把测试的想法，用代码实现。比如，你需要添加一个 WebContentsObserver, 你需要验证添加了之后，某个网页元素会被过滤掉。怎么在 test 里面创建 WebContents，怎么样添加 observer，什么样的 code 能够查询网页元素是否存在。比如你还要考虑 feature flag on/off 的情况，怎么在测试代码中添加 feature flag on/off 的代码。
+作者在 java 层或是 c++ 层都写过 test。在 chromium 写 test，比较难的地方是，对于 api 的不熟（毕竟 api 太多了），怎么把测试的想法，用代码实现。
+
+比如，你需要添加一个 WebContentsObserver, 你需要验证添加了之后，某个网页元素会被过滤掉。怎么在 test 里面创建 WebContents，怎么样添加 observer，什么样的 code 能够查询网页元素是否存在。比如你还要考虑 feature flag on/off 的情况，怎么在测试代码中添加 feature flag on/off 的代码。
 
 对我有限的经验总结了几点：
 
-* 能不能提前了解 test 框架，比如 java 层的，了解一下 Espresso, xUnit，C++ 的，了解一下 gtest, gmock. 这样至少遇到怎么样验证某个回调会不会被调到，参数是不是预料的，就会反应用 gmock，以及怎么配胸有成竹。
+* 能不能提前了解 test 框架，比如 java 层的，了解一下 Espresso, xUnit，C++ 的，了解一下 gtest, gmock. 这样至少遇到`怎么样验证某个回调会不会被调到，参数是不是预料的`，就会反应用 gmock，以及怎么配胸有成竹。
 
 * 问同事。问人总是最直接的法子。Chromium 过于小众，Stackoverflow 是帮不上了。万一同事知道了，反手甩给你一个他之前的提交，你看着他的代码，甚至连一些生僻的 api 也告诉你了，依葫芦画瓢，这不就写出来了吗？
 
@@ -60,9 +64,9 @@ MS 这边对 test 很看重，一旦 test 挂了，sheriff 会从记录中找到
 
   cs.chromium.org 是一个很不错的搜索 chromium 代码的网站。怎么搜呢？以上文为例，我可能会先搜 WebContentsObserver, 找到其中一个例子，然后看他相对应的 test 是怎么写。多看几个例子。这样自然把 WebContentsObserver 里面所有的基本操作了解个遍。
 
-  比如搜索到的 WebContentsObserver 的例子里面找不到 "检查网页元素" 的例子，怎么办？
+  又比如在所有的 WebContentsObserver 的例子里面找不到 `如何检查网页元素` 的例子，怎么办？
 
-  我会去看 WebContentsObserver.h 或是 WebContents.h 里面的 api，有没有合适的，在 cs.chromium.org 中，你又很方便地看到使用这些 api 的位置。这也是我写 test 的一个收获，我感觉我的代码搜索能力比以前强了不少。
+  我会去看 WebContentsObserver.h 或是 WebContents.h 里面的 api，有没有合适的. 而且在 cs.chromium.org 中，你又可以看到这些 api 是如何被使用的。这也是我写 test 的一个收获，我感觉我的代码搜索能力比以前强了不少。
 
 耐心（不仅包括你，还包括你的老板），认真，合适的方法，你会找到写 test 的路，相信我，当你写完，你会如同发现新大陆般，富有成就感。
 
