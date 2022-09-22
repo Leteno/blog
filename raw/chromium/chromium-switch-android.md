@@ -1,5 +1,7 @@
 ## Chromium Android 设置 Switch 参数
 
+Run out/debug-x86-no-goma/bin/chrome_public_apk run --args='--enable-features=msXXXX' and have fun.
+
 
 
 chromium 有些功能可以通过打开开关使用 [command_line.cc - Chromium Code Search](https://source.chromium.org/chromium/chromium/src/+/main:base/command_line.cc;l=1?q=command_line.cc&sq=&ss=chromium)
