@@ -144,7 +144,9 @@ class Student {
 };
 ```
 
-// TODO 调查那一段 code 阻止 WeakPtr 运行 callback。
+// 调查那一段 code 阻止 WeakPtr 运行 callback。
+
+解了，详看 [PostTask and WeakPtr.md](threading/PostTask and WeakPtr.md)
 
 
 
