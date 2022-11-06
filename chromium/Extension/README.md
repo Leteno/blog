@@ -171,5 +171,5 @@ class UserScript {
     - 添加用的是 **web_frame->GetDocument().InsertStyleSheet()**
     - 正常是只有添加，没有删除的。
 
-所以我们知道了 onDOMLoaded 或者 document 解析完之后，才会开始注入 script，而且如果没有特殊配置的话，这个 script 将会进入普通 javascript 世界，与网页 script 共舞。
+所以我们知道了 onDOMcreated 或者 onDomLoaded 之后，才会开始注入 script，而且如果没有特殊配置的话，这个 script 将会进入 isolated 世界，与网页 script 隔绝，隔海相望。
 
