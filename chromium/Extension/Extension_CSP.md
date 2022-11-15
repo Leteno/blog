@@ -7,6 +7,8 @@
 
 I need further investigation. And our journey begins.
 
+[TOC]
+
 ## Start from error message
 
 > Refused to execute inline script because it violates the following Content Security Policy directive: "script-src 'self' 'wasm-unsafe-eval'". Either the 'unsafe-inline' keyword, a hash ('sha256-5jFwrAK0UV47oFbVg/iCCBbxD8X1w+QvoOUepu4C2YA='), or a nonce ('nonce-...') is required to enable inline execution.
@@ -121,3 +123,12 @@ Extension 中的 CSP 规则，据现在的 code 而言，v3 固定为 kMinimumMV
 
 
 TODO 有空看看 `blink::SetIsolatedWorldInfo` 的实现。
+
+
+
+## 参考
+
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/script-src
+
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/Sources#sources
+
