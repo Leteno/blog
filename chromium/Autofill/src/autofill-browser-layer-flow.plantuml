@@ -1,0 +1,13 @@
+@startuml
+AutofillDriverStubDispatch->ContentAutofillDriver : AskForValuesToFill
+ContentAutofillDriver->ContentAutofillDriver : AskForValuesToFill
+ContentAutofillDriver->ContentAutofillRouter : AskForValuesToFill
+ContentAutofillRouter->ContentAutofillDriver : AskForValuesToFill
+ContentAutofillDriver->ContentAutofillDriver : AskForValuesToFill
+ContentAutofillDriver->AutofillManager : OnAskForValuesToFill
+AutofillManager->BrowserAutofillManager : OnAskForValuesToFillImpl
+BrowserAutofillManager->AutofillExternalDelegate : OnSuggestionsReturned
+AutofillExternalDelegate->AutofillExternalDelegate : ApplyAutofillOptions
+AutofillExternalDelegate->AutofillExternalDelegate : GetSettingsSuggestionValue
+AutofillExternalDelegate->AutofillClient: ShowAutofillPopup
+@enduml

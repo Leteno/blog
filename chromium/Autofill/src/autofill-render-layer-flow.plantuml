@@ -1,0 +1,14 @@
+@startuml
+WidgetBaseInputHandler->WebFrameWidgetImpl : HandleInputEvent
+WebFrameWidgetImpl->WidgetEventHandler : HandleInputEvent
+WidgetEventHandler->WebFrameWidgetImpl : HandleGestureEvent
+WebFrameWidgetImpl->EventHandler : HandleGestureEvent
+EventHandler->GestureManager : HandleGestureEventInFrame
+GestureManager->GestureManager : HandleGestureTap
+GestureManager->ChromeClientImpl : OnMouseDown
+ChromeClientImpl->AutofillAgent : DidReceiveLeftMouseDownOrGestureTapInNode
+AutofillAgent->AutofillAgent : HandleFocusChangeComplete
+AutofillAgent->AutofillAgent : FormControlElementClicked
+AutofillAgent->AutofillAgent : ShowSuggestions
+AutofillAgent->AutofillAgent : QueryAutofillSuggestions
+@enduml
